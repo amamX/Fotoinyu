@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle, Clock, FileText, Smartphone, Copy, Check } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function BookingSuccess() {
   const { code } = useParams();
@@ -11,19 +12,18 @@ export default function BookingSuccess() {
   const [booking, setBooking] = useState(null);
 
   useEffect(() => {
-    // Poll data from localStorage
-    const fetchBooking = () => {
-      const saved = JSON.parse(localStorage.getItem('fotoinyu_bookings') || '[]');
-      const found = saved.find(b => b.code === code);
-      if (found) {
-        setBooking(found);
+    // Poll data from Supabase
+    const fetchBooking = async () => {
+      const { data, error } = await supabase.from('bookings').select('*').eq('code', code).single();
+      if (data) {
+        setBooking(data);
       } else if (location.state?.booking) {
         setBooking(location.state.booking);
       }
     };
 
     fetchBooking(); // initial fetch
-    const pollTimer = setInterval(fetchBooking, 2000); // poll every 2 seconds
+    const pollTimer = setInterval(fetchBooking, 3000); // poll every 3 seconds
 
     // Countdown timer
     const countdownTimer = setInterval(() => {

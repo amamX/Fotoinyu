@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Camera, Calendar, User, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function Booking() {
   const location = useLocation();
@@ -35,24 +36,14 @@ export default function Booking() {
   const [existingBookings, setExistingBookings] = useState([]);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('fotoinyu_bookings') || '[]');
-    setExistingBookings(saved);
-
-    let savedPackages = JSON.parse(localStorage.getItem('fotoinyu_packages') || '[]');
-    const hasOldPackages = savedPackages.some(p => p.name.includes('Bronze') || p.name.includes('Silver') || p.name.includes('Gold'));
-
-    if (savedPackages.length === 0 || hasOldPackages) {
-      const defaultPackages = [
-        { id: 1, name: "Durasi 2 Jam", price: 1200000, features: ["Unlimited Printed Photo 2 jam", "Unlimited File Foto", "Video GIF/Boomerang", "Free Customized Design Template", "Scan Barcode File Photo", "Professional Lighting", "Camera Profesional Canon", "Monitor Touchscreen", "Free properties", "Crew Event"], disabled: false },
-        { id: 2, name: "Durasi 3 Jam", price: 1800000, features: ["Unlimited Printed Photo 3 jam", "Unlimited File Foto", "Video GIF/Boomerang", "Free Customized Design Template", "Scan Barcode File Photo", "Professional Lighting", "Camera Profesional Canon", "Monitor Touchscreen", "Free properties", "Bonus Convex Mirror", "Crew Event"], disabled: false },
-        { id: 3, name: "Durasi 4 Jam", price: 2300000, features: ["Unlimited Printed Photo 4 jam", "Unlimited File Foto", "Video GIF/Boomerang", "Free Customized Design Template", "Scan Barcode File Photo", "Professional Lighting", "Camera Profesional Canon", "Monitor Touchscreen", "Free properties", "Bonus Convex Mirror", "Bonus Gantungan Kunci", "Free Backdrop Simple", "Crew Event"], disabled: false },
-        { id: 4, name: "Durasi 5 Jam", price: 2800000, features: ["Unlimited Printed Photo 5 jam + extra bonus 30 menit", "Unlimited File Foto", "Video GIF/Boomerang", "Free Customized Design Template", "Scan Barcode File Photo", "Professional Lighting", "Camera Profesional Canon", "Monitor Touchscreen", "Free properties", "Bonus Convex Mirror", "Bonus Gantungan Kunci", "Bonus Album Foto", "Free Backdrop Simple", "Crew Event"], disabled: false }
-      ];
-      savedPackages = defaultPackages;
-      localStorage.setItem('fotoinyu_packages', JSON.stringify(defaultPackages));
-    }
-    setPackages(savedPackages);
-    }, []);
+    const fetchPackages = async () => {
+      const { data, error } = await supabase.from('packages').select('*').order('id', { ascending: true });
+      if (data && data.length > 0) {
+        setPackages(data);
+      }
+    };
+    fetchPackages();
+  }, []);
 
   useEffect(() => {
     if (location.state?.selectedPackage) {
@@ -64,42 +55,43 @@ export default function Booking() {
   const nextStep = () => setStep(s => Math.min(3, s + 1));
   const prevStep = () => setStep(s => Math.max(1, s - 1));
 
-  const submitBooking = (e) => {
+  const submitBooking = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate backend processing
-    setTimeout(() => {
-      // Set price based on selected package
-      const selectedPkg = packages.find(p => p.name === formData.packageId);
-      const price = selectedPkg ? selectedPkg.price : 0;
+    const selectedPkg = packages.find(p => p.name === formData.packageId);
+    const price = selectedPkg ? selectedPkg.price : 0;
 
-      const uniqueCode = Math.floor(Math.random() * 900) + 100;
-      const dpAmount = 300000 + uniqueCode;
-      const randomInv = Math.floor(Math.random() * 1000).toString().padStart(4, '0');
-      const invoiceCode = `INV-FI-2026-10-${randomInv}`;
+    const uniqueCode = Math.floor(Math.random() * 900) + 100;
+    const dpAmount = 300000 + uniqueCode;
+    const randomInv = Math.floor(Math.random() * 1000).toString().padStart(4, '0');
+    const invoiceCode = `INV-FI-2026-10-${randomInv}`;
 
-      const bookingData = {
-        code: invoiceCode,
-        customerName: formData.customerName,
-        packageName: formData.packageId,
-        totalPrice: price,
-        dpAmount: dpAmount,
-        uniqueCode: uniqueCode,
-        venue: formData.venue,
-        date: formData.date,
-        time: formData.time,
-        eventType: formData.eventType === 'Lainnya' ? formData.customEvent : formData.eventType,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      };
+    const bookingData = {
+      code: invoiceCode,
+      customerName: formData.customerName,
+      waNumber: formData.waNumber || '-',
+      packageName: formData.packageId,
+      totalPrice: price,
+      dpAmount: dpAmount,
+      venue: formData.venue,
+      date: formData.date,
+      time: formData.time,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
 
-      // Simpan ke localStorage untuk demo panel admin
-      const existingBookings = JSON.parse(localStorage.getItem('fotoinyu_bookings') || '[]');
-      localStorage.setItem('fotoinyu_bookings', JSON.stringify([...existingBookings, bookingData]));
+    const { error } = await supabase.from('bookings').insert([bookingData]);
 
-      navigate(`/booking/${invoiceCode}`, { state: { booking: bookingData } });
-    }, 1500);
+    if (!error) {
+      setTimeout(() => {
+        setIsLoading(false);
+        navigate(`/booking/${invoiceCode}`, { state: { booking: bookingData } });
+      }, 1000);
+    } else {
+      setIsLoading(false);
+      alert("Gagal membuat pesanan, silakan coba lagi.");
+    }
   };
 
   return (

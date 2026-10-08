@@ -1,22 +1,31 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, AlertCircle } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const adminPassword = localStorage.getItem('admin_password') || 'admin123';
-    
-    if (username === 'admin' && password === adminPassword) {
+    setIsLoading(true);
+    setError('');
+
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email: username,
+      password: password,
+    });
+
+    if (authError) {
+      setError('Email atau password yang Anda masukkan salah.');
+    } else if (data.user) {
       navigate('/admin/dashboard');
-    } else {
-      setError('Username atau password yang Anda masukkan salah.');
     }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -53,7 +62,8 @@ export default function AdminLogin() {
                 value={username}
                 onChange={(e) => { setUsername(e.target.value); setError(''); }}
                 className="w-full pl-11 pr-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-slate-500 hover:border-slate-500"
-                placeholder="Masukkan username admin"
+                placeholder="Masukkan email admin"
+                disabled={isLoading}
                 required
               />
             </div>
@@ -70,15 +80,17 @@ export default function AdminLogin() {
                 onChange={(e) => { setPassword(e.target.value); setError(''); }}
                 className="w-full pl-11 pr-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-slate-500 hover:border-slate-500"
                 placeholder="••••••••"
+                disabled={isLoading}
                 required
               />
             </div>
           </div>
           <button 
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98]"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98] disabled:opacity-70"
+            disabled={isLoading}
           >
-            Masuk ke Dashboard
+            {isLoading ? 'Memproses...' : 'Masuk ke Dashboard'}
           </button>
         </form>
         <div className="mt-8 text-center border-t border-slate-700/50 pt-6">
