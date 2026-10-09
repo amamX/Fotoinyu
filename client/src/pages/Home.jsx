@@ -81,7 +81,7 @@ export default function Home() {
   return (
     <div className="w-full bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
       {/* 1. Hero Section (Elegant, Glassmorphism, Premium) */}
-      <section className="relative min-h-[90vh] flex items-center justify-center bg-[url('/images/hero-bg.jpg')] bg-cover bg-center bg-fixed">
+      <section className="relative min-h-[100dvh] md:min-h-[90vh] flex items-center justify-center bg-[url('/images/hero-bg.jpg')] bg-cover bg-center md:bg-fixed">
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-slate-50 dark:to-slate-950 transition-colors duration-300"></div>
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20">
