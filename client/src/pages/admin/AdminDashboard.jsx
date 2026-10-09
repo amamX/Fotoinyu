@@ -48,38 +48,64 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const fetchBookings = async () => {
-      const { data, error } = await supabase.from('bookings').select('*').order('createdAt', { ascending: false });
+      const { data } = await supabase.from('bookings').select('*').order('createdAt', { ascending: false });
       if (data) setBookings(data);
     };
     fetchBookings();
 
-    const subscription = supabase
+    const fetchPackages = async () => {
+      const { data } = await supabase.from('packages').select('*').order('id', { ascending: true });
+      if (data) setPackages(data);
+    };
+    fetchPackages();
+
+    const fetchGallery = async () => {
+      const { data } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
+      if (data) setGalleryItems(data.map(g => g.image_url));
+    };
+    fetchGallery();
+
+    const fetchTestimonials = async () => {
+      const { data } = await supabase.from('testimonials').select('*').order('created_at', { ascending: false });
+      if (data) setTestimonials(data);
+    };
+    fetchTestimonials();
+
+    const bookingsSub = supabase
       .channel('bookings_channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
         showToast('Pesanan baru masuk atau status diperbarui!', 'success');
         fetchBookings();
       })
       .subscribe();
 
-    const savedGallery = JSON.parse(localStorage.getItem('fotoinyu_gallery') || '["/images/gallery-1.png","/images/gallery-2.png","/images/gallery-3.png","/images/gallery-4.png","/images/gallery-5.png","/images/gallery-6.png"]');
-    setGalleryItems(savedGallery);
+    const gallerySub = supabase
+      .channel('gallery_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery' }, () => {
+        fetchGallery();
+      })
+      .subscribe();
 
-    const fetchPackages = async () => {
-      const { data, error } = await supabase.from('packages').select('*').order('id', { ascending: true });
-      if (data) setPackages(data);
+    const testiSub = supabase
+      .channel('testi_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'testimonials' }, () => {
+        fetchTestimonials();
+      })
+      .subscribe();
+
+    const pkgSub = supabase
+      .channel('admin_pkg_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'packages' }, () => {
+        fetchPackages();
+      })
+      .subscribe();
+
+    return () => { 
+      supabase.removeChannel(bookingsSub); 
+      supabase.removeChannel(gallerySub); 
+      supabase.removeChannel(testiSub); 
+      supabase.removeChannel(pkgSub); 
     };
-    fetchPackages();
-
-    let savedTesti = JSON.parse(localStorage.getItem('fotoinyu_testimonials') || '[]');
-    if(savedTesti.length === 0) {
-      savedTesti = [
-        { name: "Putri", event: "Wisuda", text: "Bagus banget Photoboothnya" },
-        { name: "Ricky", event: "Wedding", text: "Makasih banyak jua kami bagus banar kak foto fotonyaa" },
-        { name: "Amam", event: "Wisuda", text: "Sangat profesional dari awal setup sampai acara selesai. Harganya juga masuk akal buat fasilitas sekelas ini." }
-      ];
-    }
-    setTestimonials(savedTesti);
-    return () => { supabase.removeChannel(subscription); };
   }, []);
 
   const updateBookingStatus = async (code, newStatus) => {
@@ -143,11 +169,13 @@ export default function AdminDashboard() {
   const handleCropSave = async () => {
     try {
       const croppedImage = await getCroppedImg(imageToCrop, croppedAreaPixels);
-      const newItems = [...galleryItems, croppedImage];
-      setGalleryItems(newItems);
-      localStorage.setItem('fotoinyu_gallery', JSON.stringify(newItems));
-      showToast('Foto berhasil diunggah ke Galeri Pelanggan!');
-      setImageToCrop(null);
+      const { error } = await supabase.from('gallery').insert([{ image_url: croppedImage }]);
+      if(!error) {
+        showToast('Foto berhasil diunggah ke Galeri Pelanggan!');
+        setImageToCrop(null);
+      } else {
+        showToast('Gagal menyimpan ke database', 'error');
+      }
     } catch (e) {
       console.error(e);
       showToast('Gagal memotong gambar', 'error');
@@ -164,25 +192,30 @@ export default function AdminDashboard() {
       cancelButtonColor: '#94a3b8',
       confirmButtonText: 'Ya, hapus!',
       cancelButtonText: 'Batal'
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        const newItems = galleryItems.filter((_, i) => i !== index);
-        setGalleryItems(newItems);
-        localStorage.setItem('fotoinyu_gallery', JSON.stringify(newItems));
+        // Find the image URL at that index
+        const imageUrl = galleryItems[index];
+        const { error } = await supabase.from('gallery').delete().eq('image_url', imageUrl);
+        if(!error) showToast('Foto berhasil dihapus');
       }
     });
   };
 
-  const handleAddTestimonial = (e) => {
+  const handleAddTestimonial = async (e) => {
     e.preventDefault();
     if(!testiName || !testiText) return;
-    const current = [{ name: testiName, event: testiEvent, text: testiText }, ...testimonials];
-    setTestimonials(current);
-    localStorage.setItem('fotoinyu_testimonials', JSON.stringify(current));
-    showToast('Testimoni berhasil ditambahkan ke Beranda!');
-    setTestiName('');
-    setTestiEvent('');
-    setTestiText('');
+    
+    const { error } = await supabase.from('testimonials').insert([{ name: testiName, event: testiEvent, text: testiText }]);
+    
+    if(!error) {
+      showToast('Testimoni berhasil ditambahkan ke Beranda!');
+      setTestiName('');
+      setTestiEvent('');
+      setTestiText('');
+    } else {
+      showToast('Gagal menambah testimoni', 'error');
+    }
   };
 
   const deleteTestimonial = (index) => {
@@ -195,11 +228,11 @@ export default function AdminDashboard() {
       cancelButtonColor: '#94a3b8',
       confirmButtonText: 'Ya, hapus!',
       cancelButtonText: 'Batal'
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        const newItems = testimonials.filter((_, i) => i !== index);
-        setTestimonials(newItems);
-        localStorage.setItem('fotoinyu_testimonials', JSON.stringify(newItems));
+        const id = testimonials[index].id;
+        const { error } = await supabase.from('testimonials').delete().eq('id', id);
+        if(!error) showToast('Testimoni berhasil dihapus');
       }
     });
   };

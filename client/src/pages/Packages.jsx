@@ -18,21 +18,40 @@ export default function Packages() {
         { color: 'bg-purple-500/10 border-purple-500/30', titleColor: 'text-purple-600', buttonColor: 'bg-purple-600' }
       ];
 
-      const { data, error } = await supabase.from('packages').select('*').order('id', { ascending: true });
-      
-      if (data && data.length > 0) {
-        const enrichedPackages = data.map((pkg, i) => ({
-          ...pkg,
-          title: pkg.name.toUpperCase(),
-          priceStr: `Rp ${pkg.price.toLocaleString('id-ID')}`,
-          ...(palettes[i % palettes.length])
-        }));
-        setPackages(enrichedPackages);
+      try {
+        const { data, error } = await supabase.from('packages').select('*').order('id', { ascending: true });
+        
+        if (data && data.length > 0) {
+          const enrichedPackages = data.map((pkg, i) => ({
+            ...pkg,
+            title: pkg.name.toUpperCase(),
+            priceStr: `Rp ${pkg.price.toLocaleString('id-ID')}`,
+            ...(palettes[i % palettes.length])
+          }));
+          setPackages(enrichedPackages);
+        } else {
+           setPackages([]); // Explicitly set to empty if no data
+        }
+      } catch (err) {
+        console.error("Gagal memuat paket:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchPackages();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('public:packages')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'packages' }, payload => {
+        fetchPackages(); // Refetch on any change
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (

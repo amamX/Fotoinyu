@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Camera, CalendarCheck, Image as ImageIcon, Sparkles, CheckCircle2, MessageCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 import ParallaxGallery from '../components/ui/3d-parallax-unfurling-gallery';
 
@@ -36,12 +37,37 @@ export default function Home() {
   ]);
 
   useEffect(() => {
-    // Load dynamic content from localStorage if available
-    const savedGallery = localStorage.getItem('fotoinyu_gallery');
-    if (savedGallery) setGalleryItems(JSON.parse(savedGallery));
+    const fetchGallery = async () => {
+      const { data } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
+      if (data && data.length > 0) setGalleryItems(data.map(g => g.image_url));
+    };
 
-    const savedTesti = localStorage.getItem('fotoinyu_testimonials');
-    if (savedTesti) setTestimonials(JSON.parse(savedTesti));
+    const fetchTestimonials = async () => {
+      const { data } = await supabase.from('testimonials').select('*').order('created_at', { ascending: false });
+      if (data && data.length > 0) setTestimonials(data);
+    };
+
+    fetchGallery();
+    fetchTestimonials();
+
+    const gallerySub = supabase
+      .channel('home_gallery_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery' }, () => {
+        fetchGallery();
+      })
+      .subscribe();
+
+    const testiSub = supabase
+      .channel('home_testi_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'testimonials' }, () => {
+        fetchTestimonials();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(gallerySub);
+      supabase.removeChannel(testiSub);
+    };
   }, []);
 
   // Scroll to hash

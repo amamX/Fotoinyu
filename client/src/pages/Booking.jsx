@@ -44,6 +44,17 @@ export default function Booking() {
       }
     };
     fetchPackages();
+    
+    const channel = supabase
+      .channel('public:packages_booking')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'packages' }, payload => {
+        fetchPackages();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
