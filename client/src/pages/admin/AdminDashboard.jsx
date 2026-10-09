@@ -356,6 +356,7 @@ export default function AdminDashboard() {
       setNewPkgPrice('');
       setNewPkgFeatures('');
     } else {
+      console.error("Supabase insert error:", error);
       showToast('Gagal menambah paket', 'error');
     }
   };
@@ -581,14 +582,14 @@ export default function AdminDashboard() {
                 <h4 className="font-semibold text-slate-700 mb-3">Foto Saat Ini ({galleryItems.length}):</h4>
                 <div className="grid grid-cols-4 gap-2 overflow-y-auto max-h-[300px] pr-2">
                   {galleryItems.map((img, idx) => (
-                    <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border">
+                    <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border shadow-sm">
                       <img src={img} alt="" className="w-full h-full object-cover" />
                       <button 
                         onClick={() => deleteGalleryItem(idx)}
-                        className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Hapus"
+                        className="absolute top-2 right-2 bg-white/90 text-red-500 p-1.5 rounded-md hover:bg-red-500 hover:text-white transition-colors shadow-md"
+                        title="Hapus Foto"
                       >
-                        <Trash2 size={20} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   ))}
