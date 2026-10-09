@@ -70,21 +70,22 @@ export default function BookingSuccess() {
   const seconds = timeLeft % 60;
 
   const waText = encodeURIComponent(
-    `Halo Admin Fotoinyu! 👋\n` +
+    `Halo Admin Fotoinyu!\n` +
     `Saya ingin mengkonfirmasi pembayaran DP untuk pesanan photobooth saya.\n\n` +
-    `📄 *DETAIL PESANAN (INVOICE)*\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `🆔 *Kode Booking:* ${booking.code}\n` +
-    `👤 *Nama:* ${booking.customerName}\n` +
-    `📱 *No. WA:* ${booking.waNumber || '-'}\n` +
-    `📦 *Paket Terpilih:* ${booking.packageName}\n` +
-    `📅 *Tgl Acara:* ${booking.date} | ${booking.time}\n` +
-    `📍 *Lokasi (Venue):* ${booking.venue}\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `💰 *TOTAL HARGA PAKET:* Rp ${booking.totalPrice.toLocaleString('id-ID')}\n` +
-    `💸 *NOMINAL DP DITRANSFER:* Rp ${booking.dpAmount.toLocaleString('id-ID')}\n` +
-    `💳 *SISA PELUNASAN:* Rp ${(booking.totalPrice - booking.dpAmount).toLocaleString('id-ID')}\n\n` +
-    `Berikut saya lampirkan foto/screenshot bukti transfernya. Terima kasih! 🙏`
+    `[ DETAIL PESANAN / INVOICE ]\n` +
+    `----------------------------------------\n` +
+    `* Kode Booking : ${booking.code}\n` +
+    `* Nama Pemesan : ${booking.customerName}\n` +
+    `* No. WhatsApp : ${booking.waNumber || '-'}\n` +
+    `* Paket Dipilih: ${booking.packageName}\n` +
+    `* Tanggal Acara: ${booking.date} | Pukul ${booking.time}\n` +
+    `* Lokasi/Venue : ${booking.venue}\n` +
+    `----------------------------------------\n\n` +
+    `[ RINCIAN PEMBAYARAN ]\n` +
+    `> TOTAL HARGA PAKET : Rp ${booking.totalPrice.toLocaleString('id-ID')}\n` +
+    `> NOMINAL DP DITRANSFER : Rp ${booking.dpAmount.toLocaleString('id-ID')}\n` +
+    `> SISA PELUNASAN NANTI  : Rp ${(booking.totalPrice - booking.dpAmount).toLocaleString('id-ID')}\n\n` +
+    `Berikut saya lampirkan foto/screenshot bukti transfernya. Terima kasih!`
   );
 
   const handleCopy = () => {

@@ -747,7 +747,7 @@ export default function AdminDashboard() {
                                   <CheckSquare size={14} /> Selesai
                                 </button>
                                 <button onClick={() => handlePrint(b.code)} className="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
-                                  <Printer size={14} /> Print
+                                  <Printer size={14} /> Print DP
                                 </button>
                                 <button onClick={() => {
                                   Swal.fire({
@@ -773,9 +773,16 @@ export default function AdminDashboard() {
                                 <Banknote size={14} /> Tandai Refund Selesai
                               </button>
                             ) : b.status === 'completed' || b.status === 'refunded' ? (
-                              <button onClick={() => updateBookingStatus(b.code, 'pending')} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
-                                <Undo2 size={14} /> Reset Status
-                              </button>
+                              <>
+                                {b.status === 'completed' && (
+                                  <button onClick={() => handlePrint(b.code)} className="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 shadow-sm mr-2">
+                                    <Printer size={14} /> Print Lunas
+                                  </button>
+                                )}
+                                <button onClick={() => updateBookingStatus(b.code, 'pending')} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                                  <Undo2 size={14} /> Reset Status
+                                </button>
+                              </>
                             ) : null}
                             <button onClick={() => deleteBooking(b.code)} className="bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1.5 rounded-lg transition-colors flex items-center border border-red-100">
                               <Trash2 size={14} />
