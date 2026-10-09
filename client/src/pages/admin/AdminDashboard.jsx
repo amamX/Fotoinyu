@@ -61,7 +61,7 @@ export default function AdminDashboard() {
 
     const fetchGallery = async () => {
       const { data } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
-      if (data) setGalleryItems(data.map(g => g.image_url));
+      if (data) setGalleryItems(data);
     };
     fetchGallery();
 
@@ -194,10 +194,13 @@ export default function AdminDashboard() {
       cancelButtonText: 'Batal'
     }).then(async (result) => {
       if (result.isConfirmed) {
-        // Find the image URL at that index
-        const imageUrl = galleryItems[index];
-        const { error } = await supabase.from('gallery').delete().eq('image_url', imageUrl);
-        if(!error) showToast('Foto berhasil dihapus');
+        const item = galleryItems[index];
+        const { error } = await supabase.from('gallery').delete().eq('id', item.id);
+        if(!error) {
+          showToast('Foto berhasil dihapus');
+        } else {
+          showToast('Gagal menghapus foto', 'error');
+        }
       }
     });
   };
@@ -581,9 +584,9 @@ export default function AdminDashboard() {
               <div className="mt-4 flex-1">
                 <h4 className="font-semibold text-slate-700 mb-3">Foto Saat Ini ({galleryItems.length}):</h4>
                 <div className="grid grid-cols-4 gap-2 overflow-y-auto max-h-[300px] pr-2">
-                  {galleryItems.map((img, idx) => (
+                  {galleryItems.map((item, idx) => (
                     <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border shadow-sm">
-                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      <img src={item.image_url} alt="" className="w-full h-full object-cover" />
                       <button 
                         onClick={() => deleteGalleryItem(idx)}
                         className="absolute top-2 right-2 bg-white/90 text-red-500 p-1.5 rounded-md hover:bg-red-500 hover:text-white transition-colors shadow-md"

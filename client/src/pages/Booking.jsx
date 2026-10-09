@@ -43,7 +43,16 @@ export default function Booking() {
         setPackages(data);
       }
     };
+    
+    const fetchBookings = async () => {
+      const { data } = await supabase.from('bookings').select('date, status').neq('status', 'rejected').neq('status', 'refunded');
+      if (data) {
+        setExistingBookings(data);
+      }
+    };
+    
     fetchPackages();
+    fetchBookings();
     
     const channel = supabase
       .channel('public:packages_booking')
@@ -212,11 +221,16 @@ export default function Booking() {
                   if (count >= 3) bgColor = 'bg-red-50 text-red-700 font-bold border-red-200';
                   
                   const isSelected = formData.date === dStr;
+                  const isFull = count >= 3;
 
                   days.push(
-                    <div key={i} className={`flex flex-col items-center justify-center p-1 md:p-2 rounded-lg border ${isSelected ? 'ring-2 ring-[var(--color-primary)] border-transparent bg-blue-50 text-blue-700 shadow-sm' : bgColor} transition-all`}>
+                    <div 
+                      key={i} 
+                      onClick={() => { if(!isFull) setFormData({ ...formData, date: dStr }); }}
+                      className={`flex flex-col items-center justify-center p-1 md:p-2 rounded-lg border ${isFull ? 'bg-red-100 text-red-700 opacity-60 cursor-not-allowed' : isSelected ? 'ring-2 ring-[var(--color-primary)] border-transparent bg-blue-50 text-blue-700 shadow-sm cursor-pointer' : bgColor + ' hover:border-blue-300 cursor-pointer'} transition-all`}
+                    >
                       <span className="text-sm">{i}</span>
-                      {count > 0 && <span className="text-[9px] leading-tight text-center mt-1 hidden md:block">{count} Acara</span>}
+                      {count > 0 && <span className="text-[9px] leading-tight text-center mt-1 hidden md:block">{isFull ? 'Penuh' : `${count} Acara`}</span>}
                       {count > 0 && <span className="w-1.5 h-1.5 rounded-full bg-current md:hidden mt-0.5"></span>}
                     </div>
                   );
@@ -236,11 +250,11 @@ export default function Booking() {
                     <div className="grid grid-cols-7 gap-1 md:gap-2">
                       {days}
                     </div>
-                    <div className="flex flex-wrap justify-center gap-4 mt-6 text-[10px] md:text-xs text-slate-500 font-medium">
-                      <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-blue-50 border border-blue-200 rounded"></div> 1 Acara</div>
-                      <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-orange-50 border border-orange-200 rounded"></div> 2 Acara</div>
-                      <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-red-50 border border-red-200 rounded"></div> 3+ Acara (Padat)</div>
-                    </div>
+                      <div className="flex flex-wrap justify-center gap-4 mt-6 text-[10px] md:text-xs text-slate-500 font-medium">
+                        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-blue-50 border border-blue-200 rounded"></div> 1 Acara (Bisa)</div>
+                        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-orange-50 border border-orange-200 rounded"></div> 2 Acara (Bisa)</div>
+                        <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-red-100 border border-red-300 rounded"></div> Penuh (Tutup)</div>
+                      </div>
                   </div>
                 );
               })()}
@@ -332,7 +346,14 @@ export default function Booking() {
             {step < 3 ? (
               <button
                 type="button"
-                onClick={nextStep}
+                onClick={() => {
+                  const selectedDateCount = existingBookings.filter(b => b.date === formData.date).length;
+                  if (selectedDateCount >= 3) {
+                    Swal.fire('Jadwal Penuh', 'Maaf, tanggal ini sudah mencapai batas maksimal 3 acara. Silakan pilih tanggal lain.', 'error');
+                  } else {
+                    nextStep();
+                  }
+                }}
                 disabled={(step === 1 && !formData.packageId) || (step === 2 && (!formData.date || !formData.time))}
                 className="w-full sm:w-auto flex justify-center items-center gap-2 bg-[var(--color-primary)] text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
               >
