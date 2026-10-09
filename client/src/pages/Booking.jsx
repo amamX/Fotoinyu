@@ -37,10 +37,15 @@ export default function Booking() {
   const [existingBookings, setExistingBookings] = useState([]);
 
   useEffect(() => {
-    const fetchPackages = async () => {
-      const { data, error } = await supabase.from('packages').select('*').order('id', { ascending: true });
-      if (data && data.length > 0) {
-        setPackages(data);
+    const fetchPackages = () => {
+      const savedPackages = JSON.parse(localStorage.getItem('fotoinyu_packages') || '[]');
+      if (savedPackages.length > 0) {
+        setPackages(savedPackages);
+      } else {
+        setPackages([
+          { id: 1, name: "Durasi 2 Jam", price: 1200000, features: ["Unlimited Printed Photo 2 jam", "Unlimited File Foto"], disabled: false },
+          { id: 2, name: "Durasi 3 Jam", price: 1800000, features: ["Unlimited Printed Photo 3 jam", "Unlimited File Foto"], disabled: false },
+        ]);
       }
     };
     fetchPackages();
@@ -270,13 +275,13 @@ export default function Booking() {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between items-center mt-10 pt-6 border-t border-gray-100">
-            <div className="flex gap-3">
+          <div className="flex flex-col-reverse sm:flex-row justify-between items-center mt-10 pt-6 border-t border-gray-100 gap-4">
+            <div className="flex w-full sm:w-auto gap-3">
               <button
                 type="button"
                 onClick={prevStep}
                 disabled={step === 1 || isLoading}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-colors ${step === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
+                className={`flex-1 sm:flex-none flex justify-center items-center gap-2 px-6 py-3 rounded-xl font-bold transition-colors ${step === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
               >
                 <ArrowLeft size={18} /> Kembali
               </button>
@@ -311,7 +316,7 @@ export default function Booking() {
                     });
                   }}
                   disabled={isLoading}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-red-500 hover:bg-red-50 transition-colors"
+                  className="flex-1 sm:flex-none flex justify-center items-center gap-2 px-6 py-3 rounded-xl font-bold text-red-500 hover:bg-red-50 transition-colors"
                 >
                   Batal
                 </button>
@@ -323,7 +328,7 @@ export default function Booking() {
                 type="button"
                 onClick={nextStep}
                 disabled={(step === 1 && !formData.packageId) || (step === 2 && (!formData.date || !formData.time))}
-                className="flex items-center gap-2 bg-[var(--color-primary)] text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                className="w-full sm:w-auto flex justify-center items-center gap-2 bg-[var(--color-primary)] text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
               >
                 Lanjut <ArrowRight size={18} />
               </button>
@@ -332,7 +337,7 @@ export default function Booking() {
                 type="button"
                 onClick={submitBooking}
                 disabled={!formData.customerName.trim() || !formData.waNumber.trim() || !formData.eventType || (formData.eventType === 'Lainnya' && !formData.customEvent.trim()) || !formData.venue.trim() || isLoading}
-                className="flex items-center gap-2 bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--color-primary)] text-white px-8 py-3 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                className="w-full sm:w-auto flex justify-center items-center gap-2 bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--color-primary)] text-white px-8 py-3 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
               >
                 {isLoading ? 'Memproses...' : 'Selesaikan Booking'} {isLoading ? null : <CheckCircle size={18} />}
               </button>

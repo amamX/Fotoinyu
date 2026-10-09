@@ -171,6 +171,32 @@ export default function BookingSuccess() {
     );
   }
 
+  // Rejected State
+  if (booking.status === 'rejected') {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-32 pb-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center transition-colors duration-300">
+        <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-red-500/30 p-8 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-600 to-red-400"></div>
+          <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-red-500/20">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-10 h-10" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Pesanan Dibatalkan</h1>
+          <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
+            Maaf, pesanan Anda (Kode: <strong>{booking.code}</strong>) telah dibatalkan atau ditolak oleh Admin. Silakan buat pesanan baru atau hubungi tim kami jika ada kendala.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button onClick={() => navigate('/booking')} className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold py-4 rounded-xl transition-colors">
+              Buat Pesanan Baru
+            </button>
+            <a href="https://wa.me/6281253776037" target="_blank" rel="noreferrer" className="w-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-bold py-4 rounded-xl hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors border border-green-200 dark:border-green-800/50">
+              Hubungi CS via WhatsApp
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Pending State
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-32 pb-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">

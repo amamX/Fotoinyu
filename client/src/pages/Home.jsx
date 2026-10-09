@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { Camera, CalendarCheck, Image as ImageIcon, Sparkles, CheckCircle2, MessageCircle } from 'lucide-react';
 
 import ParallaxGallery from '../components/ui/3d-parallax-unfurling-gallery';
@@ -69,12 +69,12 @@ export default function Home() {
             Hadirkan memori tak terlupakan untuk Wedding, Birthday, Wisuda, dan Event Spesial Anda dengan studio mini premium kami.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <a href="/booking" className="w-full sm:w-auto bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--color-primary)] text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-[0_0_25px_rgba(244,63,94,0.5)] hover:-translate-y-1 transition-all duration-300">
+            <Link to="/booking" className="w-full sm:w-auto bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--color-primary)] text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-[0_0_25px_rgba(244,63,94,0.5)] hover:-translate-y-1 transition-all duration-300">
               Pesan Tanggal Sekarang
-            </a>
-            <a href="/paket" className="w-full sm:w-auto bg-white/10 backdrop-blur-md border border-white/30 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition-all duration-300">
+            </Link>
+            <Link to="/paket" className="w-full sm:w-auto bg-white/10 backdrop-blur-md border border-white/30 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition-all duration-300">
               Lihat Pricelist
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -170,9 +170,9 @@ export default function Home() {
           </div>
 
           <div className="mt-16">
-            <a href="/booking" className="inline-flex items-center gap-2 bg-white dark:bg-blue-600 text-[var(--color-primary-dark)] dark:text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-50 dark:hover:bg-blue-700 transition-colors shadow-lg">
+            <Link to="/booking" className="inline-flex items-center gap-2 bg-white dark:bg-blue-600 text-[var(--color-primary-dark)] dark:text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-50 dark:hover:bg-blue-700 transition-colors shadow-lg">
               <CalendarCheck size={24} /> Cek Ketersediaan Tanggal
-            </a>
+            </Link>
           </div>
         </div>
       </section>

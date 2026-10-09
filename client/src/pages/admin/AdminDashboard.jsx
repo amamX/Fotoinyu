@@ -229,29 +229,72 @@ export default function AdminDashboard() {
   }, 0);
   
   const exportToCSV = () => {
-    // Add BOM for Excel UTF-8 compatibility
-    const BOM = "\uFEFF";
-    let csvContent = BOM;
-    
-    // Title Row
-    csvContent += `LAPORAN KEUANGAN BOOKING FOTOINYU\nPeriode: ${new Date(selectedYear, selectedMonth).toLocaleString('id-ID', { month: 'long', year: 'numeric' })}\n\n`;
-    
-    const headers = ["Kode Invoice", "Nama Pemesan", "No. WA", "Paket", "Tgl Acara", "Status", "Total Harga", "Nominal DP"];
-    const rows = monthlyBookings.map(b => [
-      `"${b.code}"`, `"${b.customerName}"`, `"${b.waNumber || '-'}"`, `"${b.packageName}"`, `"${b.date}"`, `"${b.status.toUpperCase()}"`, b.totalPrice, b.dpAmount
-    ]);
-    
-    csvContent += headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
-    
-    // Summary
-    csvContent += `\n\nTOTAL PENDAPATAN BULAN INI,,,,,,"Rp ${totalPendapatanBulanIni.toLocaleString('id-ID')}"\n`;
-    csvContent += `TOTAL PEMESANAN,,,,,,"${monthlyBookings.length} Pesanan"\n`;
+    const period = new Date(selectedYear, selectedMonth).toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+    let tableStr = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8" />
+        <style>
+          table { border-collapse: collapse; font-family: Arial, sans-serif; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f3f4f6; font-weight: bold; }
+          .header-row th { background-color: #e5e7eb; }
+          .title { font-size: 16px; font-weight: bold; text-align: center; background-color: #1e3a8a; color: white; padding: 10px; }
+          .subtitle { text-align: center; font-weight: bold; background-color: #eff6ff; padding: 5px; }
+          .summary-row td { background-color: #e5e7eb; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+      <table>
+        <tr><th colspan="8" class="title">LAPORAN KEUANGAN BOOKING FOTOINYU</th></tr>
+        <tr><th colspan="8" class="subtitle">Periode: ${period}</th></tr>
+        <tr><td colspan="8"></td></tr>
+        <tr class="header-row">
+          <th>Kode Invoice</th>
+          <th>Nama Pemesan</th>
+          <th>No. WA</th>
+          <th>Paket</th>
+          <th>Tgl Acara</th>
+          <th>Status</th>
+          <th>Total Harga</th>
+          <th>Nominal DP</th>
+        </tr>
+    `;
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    monthlyBookings.forEach(b => {
+      tableStr += `
+        <tr>
+          <td>${b.code}</td>
+          <td>${b.customerName}</td>
+          <td>${b.waNumber || '-'}</td>
+          <td>${b.packageName}</td>
+          <td>${b.date}</td>
+          <td>${b.status.toUpperCase()}</td>
+          <td>Rp ${b.totalPrice.toLocaleString('id-ID')}</td>
+          <td>Rp ${b.dpAmount.toLocaleString('id-ID')}</td>
+        </tr>
+      `;
+    });
+
+    tableStr += `
+        <tr><td colspan="8"></td></tr>
+        <tr class="summary-row">
+          <td colspan="6" style="text-align: right;">TOTAL PENDAPATAN BULAN INI</td>
+          <td colspan="2">Rp ${totalPendapatanBulanIni.toLocaleString('id-ID')}</td>
+        </tr>
+        <tr class="summary-row">
+          <td colspan="6" style="text-align: right;">TOTAL PEMESANAN</td>
+          <td colspan="2">${monthlyBookings.length} Pesanan</td>
+        </tr>
+      </table>
+      </body></html>
+    `;
+
+    const blob = new Blob([tableStr], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `Laporan_Fotoinyu_${selectedMonth+1}_${selectedYear}.csv`);
+    link.href = url;
+    link.download = `Laporan_Fotoinyu_${selectedMonth+1}_${selectedYear}.xls`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -320,9 +363,12 @@ export default function AdminDashboard() {
       {/* Sidebar */}
       <div className={`fixed md:relative top-0 left-0 w-64 h-full bg-slate-900 text-white flex flex-col z-40 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 shadow-2xl md:shadow-none`}>
         <div className="p-6 flex justify-between items-center border-b border-slate-800/50">
-          <div>
-            <h2 className="text-2xl font-bold text-blue-400 font-display tracking-tight">Admin Panel</h2>
-            <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Fotoinyu App</p>
+          <div className="flex items-center gap-3">
+            <img src="/images/logo.png" alt="Fotoinyu Logo" className="w-12 h-12 object-contain bg-white rounded-lg p-1" />
+            <div>
+              <h2 className="text-xl font-bold text-white tracking-tight">Admin Panel</h2>
+              <p className="text-[10px] text-blue-400 uppercase tracking-wider font-bold">Fotoinyu App</p>
+            </div>
           </div>
           <button className="md:hidden text-slate-400 hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>
             <X size={24} />
