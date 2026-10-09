@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Camera, Calendar, User, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import Swal from 'sweetalert2';
 
 export default function Booking() {
   const location = useLocation();
@@ -90,7 +91,12 @@ export default function Booking() {
       }, 1000);
     } else {
       setIsLoading(false);
-      alert("Gagal membuat pesanan, silakan coba lagi.");
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Gagal membuat pesanan, silakan coba lagi.',
+        confirmButtonColor: '#3085d6'
+      });
     }
   };
 
@@ -159,6 +165,7 @@ export default function Booking() {
                   <input 
                     type="date" 
                     value={formData.date} 
+                    min={new Date().toLocaleDateString('en-CA')} // format YYYY-MM-DD local
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })} 
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
                   />
@@ -239,7 +246,7 @@ export default function Booking() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">No. WhatsApp</label>
-                  <input type="tel" placeholder="08..." value={formData.waNumber} onChange={(e) => setFormData({ ...formData, waNumber: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white" />
+                  <input type="tel" pattern="[0-9]*" onInput={(e) => e.target.value = e.target.value.replace(/[^0-9]/g, '')} placeholder="08..." value={formData.waNumber} onChange={(e) => setFormData({ ...formData, waNumber: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Jenis Acara</label>
@@ -264,14 +271,52 @@ export default function Booking() {
 
           {/* Navigation Buttons */}
           <div className="flex justify-between items-center mt-10 pt-6 border-t border-gray-100">
-            <button
-              type="button"
-              onClick={prevStep}
-              disabled={step === 1 || isLoading}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-colors ${step === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
-            >
-              <ArrowLeft size={18} /> Kembali
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={prevStep}
+                disabled={step === 1 || isLoading}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-colors ${step === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
+              >
+                <ArrowLeft size={18} /> Kembali
+              </button>
+              
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    Swal.fire({
+                      title: 'Batalkan Isian?',
+                      text: "Semua data yang telah Anda isi akan dihapus.",
+                      icon: 'warning',
+                      showCancelButton: true,
+                      confirmButtonColor: '#ef4444',
+                      cancelButtonColor: '#94a3b8',
+                      confirmButtonText: 'Ya, hapus!',
+                      cancelButtonText: 'Batal'
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        setStep(1);
+                        setFormData({
+                          packageId: '',
+                          date: '',
+                          time: '',
+                          customerName: '',
+                          waNumber: '',
+                          eventType: '',
+                          customEvent: '',
+                          venue: '',
+                        });
+                      }
+                    });
+                  }}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  Batal
+                </button>
+              )}
+            </div>
 
             {step < 3 ? (
               <button

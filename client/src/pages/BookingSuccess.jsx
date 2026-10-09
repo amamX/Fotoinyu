@@ -36,6 +36,16 @@ export default function BookingSuccess() {
     };
   }, [code, location.state]);
 
+  // Prevent accidental refresh
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = ''; // Standard browser refresh warning
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   const [hasPrinted, setHasPrinted] = useState(false);
 
   useEffect(() => {

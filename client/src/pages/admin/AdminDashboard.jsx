@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, Calendar, Settings, LogOut, CheckCircle, Clock, Undo2, Printer, KeyRound, Eye, EyeOff, LayoutTemplate, Download, ImagePlus, MessageSquarePlus, CheckSquare, Trash2, X, Menu, Package, XCircle, Banknote, PlusCircle } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../utils/cropImage';
+import { supabase } from '../../lib/supabase';
+import Swal from 'sweetalert2';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -45,8 +47,19 @@ export default function AdminDashboard() {
   const [newPkgFeatures, setNewPkgFeatures] = useState('');
 
   useEffect(() => {
-    const savedBookings = JSON.parse(localStorage.getItem('fotoinyu_bookings') || '[]');
-    setBookings(savedBookings.reverse()); 
+    const fetchBookings = async () => {
+      const { data, error } = await supabase.from('bookings').select('*').order('createdAt', { ascending: false });
+      if (data) setBookings(data);
+    };
+    fetchBookings();
+
+    const subscription = supabase
+      .channel('bookings_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, (payload) => {
+        showToast('Pesanan baru masuk atau status diperbarui!', 'success');
+        fetchBookings();
+      })
+      .subscribe();
 
     const savedGallery = JSON.parse(localStorage.getItem('fotoinyu_gallery') || '["/images/gallery-1.png","/images/gallery-2.png","/images/gallery-3.png","/images/gallery-4.png","/images/gallery-5.png","/images/gallery-6.png"]');
     setGalleryItems(savedGallery);
@@ -75,20 +88,36 @@ export default function AdminDashboard() {
       ];
     }
     setTestimonials(savedTesti);
+    return () => { supabase.removeChannel(subscription); };
   }, []);
 
-  const updateBookingStatus = (code, newStatus) => {
-    const updated = bookings.map(b => b.code === code ? { ...b, status: newStatus } : b);
-    setBookings(updated);
-    localStorage.setItem('fotoinyu_bookings', JSON.stringify([...updated].reverse())); 
+  const updateBookingStatus = async (code, newStatus) => {
+    const { error } = await supabase.from('bookings').update({ status: newStatus }).eq('code', code);
+    if (!error) {
+      setBookings(bookings.map(b => b.code === code ? { ...b, status: newStatus } : b));
+      showToast('Status pesanan berhasil diperbarui');
+    }
   };
 
-  const deleteBooking = (code) => {
-    if(window.confirm("Yakin ingin menghapus data booking ini secara permanen?")) {
-      const updated = bookings.filter(b => b.code !== code);
-      setBookings(updated);
-      localStorage.setItem('fotoinyu_bookings', JSON.stringify([...updated].reverse())); 
-    }
+  const deleteBooking = async (code) => {
+    Swal.fire({
+      title: 'Hapus Pesanan?',
+      text: "Data booking ini akan dihapus secara permanen!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const { error } = await supabase.from('bookings').delete().eq('code', code);
+        if (!error) {
+          setBookings(bookings.filter(b => b.code !== code));
+          showToast('Pesanan berhasil dihapus');
+        }
+      }
+    });
   };
 
   const handlePrint = (code) => {
@@ -135,10 +164,22 @@ export default function AdminDashboard() {
   };
 
   const deleteGalleryItem = (index) => {
-    if(!window.confirm("Hapus foto ini dari galeri?")) return;
-    const newItems = galleryItems.filter((_, i) => i !== index);
-    setGalleryItems(newItems);
-    localStorage.setItem('fotoinyu_gallery', JSON.stringify(newItems));
+    Swal.fire({
+      title: 'Hapus Foto?',
+      text: "Foto ini akan dihapus dari galeri.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const newItems = galleryItems.filter((_, i) => i !== index);
+        setGalleryItems(newItems);
+        localStorage.setItem('fotoinyu_gallery', JSON.stringify(newItems));
+      }
+    });
   };
 
   const handleAddTestimonial = (e) => {
@@ -154,10 +195,22 @@ export default function AdminDashboard() {
   };
 
   const deleteTestimonial = (index) => {
-    if(!window.confirm("Hapus testimoni ini?")) return;
-    const newItems = testimonials.filter((_, i) => i !== index);
-    setTestimonials(newItems);
-    localStorage.setItem('fotoinyu_testimonials', JSON.stringify(newItems));
+    Swal.fire({
+      title: 'Hapus Testimoni?',
+      text: "Testimoni ini akan dihapus permanen.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const newItems = testimonials.filter((_, i) => i !== index);
+        setTestimonials(newItems);
+        localStorage.setItem('fotoinyu_testimonials', JSON.stringify(newItems));
+      }
+    });
   };
 
   // --- STATS LOGIC ---
@@ -234,12 +287,23 @@ export default function AdminDashboard() {
   };
 
   const deletePackage = (id) => {
-    if(window.confirm("Yakin ingin menghapus paket ini?")) {
-      const updated = packages.filter(p => p.id !== id);
-      setPackages(updated);
-      localStorage.setItem('fotoinyu_packages', JSON.stringify(updated));
-      showToast('Paket berhasil dihapus');
-    }
+    Swal.fire({
+      title: 'Hapus Paket?',
+      text: "Paket ini akan dihapus permanen.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updated = packages.filter(p => p.id !== id);
+        setPackages(updated);
+        localStorage.setItem('fotoinyu_packages', JSON.stringify(updated));
+        showToast('Paket berhasil dihapus');
+      }
+    });
   };
 
   return (
@@ -602,9 +666,20 @@ export default function AdminDashboard() {
                                   <Printer size={14} /> Print
                                 </button>
                                 <button onClick={() => {
-                                  if(window.confirm("Yakin ingin membatalkan pesanan yang sudah di-DP? Jika ya, pastikan Anda telah menghubungi pelanggan untuk proses Refund via WA.")) {
-                                    updateBookingStatus(b.code, 'rejected');
-                                  }
+                                  Swal.fire({
+                                    title: 'Batal & Refund?',
+                                    text: "Yakin ingin membatalkan pesanan yang sudah di-DP? Pastikan Anda telah menghubungi pelanggan untuk proses Refund via WA.",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ea580c',
+                                    cancelButtonColor: '#94a3b8',
+                                    confirmButtonText: 'Ya, Batalkan!',
+                                    cancelButtonText: 'Kembali'
+                                  }).then((result) => {
+                                    if (result.isConfirmed) {
+                                      updateBookingStatus(b.code, 'rejected');
+                                    }
+                                  });
                                 }} className="bg-orange-50 text-orange-700 border border-orange-200 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
                                   Batal & Refund
                                 </button>

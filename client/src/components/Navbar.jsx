@@ -112,12 +112,10 @@ export default function Navbar() {
                       : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                     }`}
                 >
-                  {/* Highlight pill indicator with Framer Motion layoutId for smooth sliding */}
+                  {/* Highlight pill indicator */}
                   {isActive && !isBooking && (
-                    <motion.div
-                      layoutId="active-nav-pill"
+                    <div
                       className="absolute inset-0 bg-[var(--color-primary)] rounded-full -z-10 shadow-md shadow-blue-200 dark:shadow-none"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
                   {isBooking && (

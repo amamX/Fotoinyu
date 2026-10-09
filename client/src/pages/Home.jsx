@@ -241,18 +241,25 @@ export default function Home() {
               </div>
 
               {/* Gmaps */}
-              <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-slate-100 dark:border-gray-700 p-3 h-64 overflow-hidden relative group">
-                <div className="absolute inset-0 bg-black/5 dark:bg-white/5 z-10 pointer-events-none group-hover:bg-transparent transition-colors rounded-2xl"></div>
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.15340656627!2d114.58788481475765!3d-3.313076197587877!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2de4230058b73af1%3A0x6b876fc1eb43b4f6!2sBanjarmasin%2C%20Banjarmasin%20City%2C%20South%20Kalimantan!5e0!3m2!1sen!2sid!4v1680000000000!5m2!1sen!2sid"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  className="rounded-2xl opacity-90 dark:opacity-75 group-hover:opacity-100 transition-opacity"
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
+              <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-slate-100 dark:border-gray-700 p-8">
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Lokasi Studio Kami</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6 flex items-start gap-2">
+                  <svg className="w-5 h-5 mt-0.5 flex-shrink-0 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <span>Sungai Jingah<br />Kota Banjarmasin, Kalimantan Selatan</span>
+                </p>
+                <div className="h-64 overflow-hidden relative group rounded-2xl">
+                  <div className="absolute inset-0 bg-black/5 dark:bg-white/5 z-10 pointer-events-none group-hover:bg-transparent transition-colors rounded-2xl"></div>
+                  <iframe
+                    src="https://www.google.com/maps?q=-3.3017805,114.6087531&hl=id&z=15&output=embed"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    className="rounded-2xl opacity-90 dark:opacity-75 group-hover:opacity-100 transition-opacity"
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  ></iframe>
+                </div>
               </div>
             </div>
           </div>
