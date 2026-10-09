@@ -64,20 +64,11 @@ export default function AdminDashboard() {
     const savedGallery = JSON.parse(localStorage.getItem('fotoinyu_gallery') || '["/images/gallery-1.png","/images/gallery-2.png","/images/gallery-3.png","/images/gallery-4.png","/images/gallery-5.png","/images/gallery-6.png"]');
     setGalleryItems(savedGallery);
 
-    let savedPackages = JSON.parse(localStorage.getItem('fotoinyu_packages') || '[]');
-    const hasOldPackages = savedPackages.some(p => p.name.includes('Bronze') || p.name.includes('Silver') || p.name.includes('Gold'));
-
-    if (savedPackages.length === 0 || hasOldPackages) {
-      const defaultPackages = [
-        { id: 1, name: "Durasi 2 Jam", price: 1200000, features: ["Unlimited Printed Photo 2 jam", "Unlimited File Foto", "Video GIF/Boomerang", "Free Customized Design Template", "Scan Barcode File Photo", "Professional Lighting", "Camera Profesional Canon", "Monitor Touchscreen", "Free properties", "Crew Event"], disabled: false },
-        { id: 2, name: "Durasi 3 Jam", price: 1800000, features: ["Unlimited Printed Photo 3 jam", "Unlimited File Foto", "Video GIF/Boomerang", "Free Customized Design Template", "Scan Barcode File Photo", "Professional Lighting", "Camera Profesional Canon", "Monitor Touchscreen", "Free properties", "Bonus Convex Mirror", "Crew Event"], disabled: false },
-        { id: 3, name: "Durasi 4 Jam", price: 2300000, features: ["Unlimited Printed Photo 4 jam", "Unlimited File Foto", "Video GIF/Boomerang", "Free Customized Design Template", "Scan Barcode File Photo", "Professional Lighting", "Camera Profesional Canon", "Monitor Touchscreen", "Free properties", "Bonus Convex Mirror", "Bonus Gantungan Kunci", "Free Backdrop Simple", "Crew Event"], disabled: false },
-        { id: 4, name: "Durasi 5 Jam", price: 2800000, features: ["Unlimited Printed Photo 5 jam + extra bonus 30 menit", "Unlimited File Foto", "Video GIF/Boomerang", "Free Customized Design Template", "Scan Barcode File Photo", "Professional Lighting", "Camera Profesional Canon", "Monitor Touchscreen", "Free properties", "Bonus Convex Mirror", "Bonus Gantungan Kunci", "Bonus Album Foto", "Free Backdrop Simple", "Crew Event"], disabled: false }
-      ];
-      savedPackages = defaultPackages;
-      localStorage.setItem('fotoinyu_packages', JSON.stringify(defaultPackages));
-    }
-    setPackages(savedPackages);
+    const fetchPackages = async () => {
+      const { data, error } = await supabase.from('packages').select('*').order('id', { ascending: true });
+      if (data) setPackages(data);
+    };
+    fetchPackages();
 
     let savedTesti = JSON.parse(localStorage.getItem('fotoinyu_testimonials') || '[]');
     if(savedTesti.length === 0) {
@@ -300,33 +291,40 @@ export default function AdminDashboard() {
     document.body.removeChild(link);
   };
 
-  const togglePackage = (id) => {
-    const updated = packages.map(p => p.id === id ? { ...p, disabled: !p.disabled } : p);
-    setPackages(updated);
-    localStorage.setItem('fotoinyu_packages', JSON.stringify(updated));
-    showToast('Status paket berhasil diperbarui');
+  const togglePackage = async (id) => {
+    const pkg = packages.find(p => p.id === id);
+    if(!pkg) return;
+    const { error } = await supabase.from('packages').update({ disabled: !pkg.disabled }).eq('id', id);
+    if(!error) {
+      setPackages(packages.map(p => p.id === id ? { ...p, disabled: !p.disabled } : p));
+      showToast('Status paket berhasil diperbarui');
+    } else {
+      showToast('Gagal update paket', 'error');
+    }
   };
 
-  const handleAddPackage = (e) => {
+  const handleAddPackage = async (e) => {
     e.preventDefault();
     if (!newPkgName || !newPkgPrice || !newPkgFeatures) return;
     
     const featuresArray = newPkgFeatures.split(',').map(f => f.trim()).filter(f => f);
     const newPkg = {
-      id: Date.now(),
       name: newPkgName,
       price: parseInt(newPkgPrice),
       features: featuresArray,
       disabled: false
     };
     
-    const updated = [...packages, newPkg];
-    setPackages(updated);
-    localStorage.setItem('fotoinyu_packages', JSON.stringify(updated));
-    showToast('Paket baru berhasil ditambahkan!');
-    setNewPkgName('');
-    setNewPkgPrice('');
-    setNewPkgFeatures('');
+    const { data, error } = await supabase.from('packages').insert([newPkg]).select();
+    if(!error && data) {
+      setPackages([...packages, data[0]]);
+      showToast('Paket baru berhasil ditambahkan!');
+      setNewPkgName('');
+      setNewPkgPrice('');
+      setNewPkgFeatures('');
+    } else {
+      showToast('Gagal menambah paket', 'error');
+    }
   };
 
   const deletePackage = (id) => {
@@ -339,12 +337,15 @@ export default function AdminDashboard() {
       cancelButtonColor: '#94a3b8',
       confirmButtonText: 'Ya, hapus!',
       cancelButtonText: 'Batal'
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        const updated = packages.filter(p => p.id !== id);
-        setPackages(updated);
-        localStorage.setItem('fotoinyu_packages', JSON.stringify(updated));
-        showToast('Paket berhasil dihapus');
+        const { error } = await supabase.from('packages').delete().eq('id', id);
+        if(!error) {
+          setPackages(packages.filter(p => p.id !== id));
+          showToast('Paket berhasil dihapus');
+        } else {
+          showToast('Gagal menghapus paket', 'error');
+        }
       }
     });
   };

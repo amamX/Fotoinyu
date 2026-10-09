@@ -1,35 +1,38 @@
 import { CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 export default function Packages() {
   const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedPackages = JSON.parse(localStorage.getItem('fotoinyu_packages') || '[]');
-    
-    // Define a palette to map to dynamically loaded packages
-    const palettes = [
-      { color: 'bg-[#3b82f6]/10 border-[#3b82f6]/30', titleColor: 'text-[#3b82f6]', buttonColor: 'bg-[#3b82f6]' },
-      { color: 'bg-[#2563eb]/10 border-[#2563eb]/30', titleColor: 'text-[#2563eb]', buttonColor: 'bg-[#2563eb]', popular: true },
-      { color: 'bg-[#1e40af]/10 border-[#1e40af]/30', titleColor: 'text-[#1e40af]', buttonColor: 'bg-[#1e40af]' },
-      { color: 'bg-[#171717]/10 border-[#171717]/30 dark:bg-gray-800 dark:border-gray-600', titleColor: 'text-[#171717] dark:text-gray-300', buttonColor: 'bg-[#171717] dark:bg-gray-700' },
-      { color: 'bg-emerald-500/10 border-emerald-500/30', titleColor: 'text-emerald-600', buttonColor: 'bg-emerald-600' },
-      { color: 'bg-purple-500/10 border-purple-500/30', titleColor: 'text-purple-600', buttonColor: 'bg-purple-600' }
-    ];
+    const fetchPackages = async () => {
+      const palettes = [
+        { color: 'bg-[#3b82f6]/10 border-[#3b82f6]/30', titleColor: 'text-[#3b82f6]', buttonColor: 'bg-[#3b82f6]' },
+        { color: 'bg-[#2563eb]/10 border-[#2563eb]/30', titleColor: 'text-[#2563eb]', buttonColor: 'bg-[#2563eb]', popular: true },
+        { color: 'bg-[#1e40af]/10 border-[#1e40af]/30', titleColor: 'text-[#1e40af]', buttonColor: 'bg-[#1e40af]' },
+        { color: 'bg-[#171717]/10 border-[#171717]/30 dark:bg-gray-800 dark:border-gray-600', titleColor: 'text-[#171717] dark:text-gray-300', buttonColor: 'bg-[#171717] dark:bg-gray-700' },
+        { color: 'bg-emerald-500/10 border-emerald-500/30', titleColor: 'text-emerald-600', buttonColor: 'bg-emerald-600' },
+        { color: 'bg-purple-500/10 border-purple-500/30', titleColor: 'text-purple-600', buttonColor: 'bg-purple-600' }
+      ];
 
-    if (savedPackages.length > 0) {
-      const enrichedPackages = savedPackages.map((pkg, i) => ({
-        ...pkg,
-        title: pkg.name.toUpperCase(),
-        priceStr: `Rp ${pkg.price.toLocaleString('id-ID')}`,
-        ...(palettes[i % palettes.length]) // Cycle through palettes
-      }));
-      setPackages(enrichedPackages);
-    } else {
-      // Fallback
-      setPackages([]);
-    }
+      const { data, error } = await supabase.from('packages').select('*').order('id', { ascending: true });
+      
+      if (data && data.length > 0) {
+        const enrichedPackages = data.map((pkg, i) => ({
+          ...pkg,
+          title: pkg.name.toUpperCase(),
+          priceStr: `Rp ${pkg.price.toLocaleString('id-ID')}`,
+          ...(palettes[i % palettes.length])
+        }));
+        setPackages(enrichedPackages);
+      }
+      setLoading(false);
+    };
+
+    fetchPackages();
   }, []);
 
   return (

@@ -37,15 +37,10 @@ export default function Booking() {
   const [existingBookings, setExistingBookings] = useState([]);
 
   useEffect(() => {
-    const fetchPackages = () => {
-      const savedPackages = JSON.parse(localStorage.getItem('fotoinyu_packages') || '[]');
-      if (savedPackages.length > 0) {
-        setPackages(savedPackages);
-      } else {
-        setPackages([
-          { id: 1, name: "Durasi 2 Jam", price: 1200000, features: ["Unlimited Printed Photo 2 jam", "Unlimited File Foto"], disabled: false },
-          { id: 2, name: "Durasi 3 Jam", price: 1800000, features: ["Unlimited Printed Photo 3 jam", "Unlimited File Foto"], disabled: false },
-        ]);
+    const fetchPackages = async () => {
+      const { data, error } = await supabase.from('packages').select('*').order('id', { ascending: true });
+      if (data && data.length > 0) {
+        setPackages(data);
       }
     };
     fetchPackages();
