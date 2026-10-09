@@ -138,16 +138,22 @@ export default function AdminDashboard() {
   };
 
   const handlePrint = (code) => {
-    navigate(`/booking/${code}?print=true`);
+    window.open(`/booking/${code}?print=true`, '_blank');
   };
 
-  const handleChangePassword = (e) => {
+  const handleChangePassword = async (e) => {
     e.preventDefault();
     if(newPassword.length < 6) return showToast("Password minimal 6 karakter", "error");
-    localStorage.setItem('admin_password', newPassword);
-    showToast('Password berhasil diubah secara permanen!');
-    setNewPassword('');
-    setShowPassword(false);
+    
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    
+    if (error) {
+      showToast('Gagal mengubah password', 'error');
+    } else {
+      showToast('Password berhasil diubah secara permanen!');
+      setNewPassword('');
+      setShowPassword(false);
+    }
   };
 
   // --- CONTENT MANAGEMENT LOGIC ---
