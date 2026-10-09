@@ -70,13 +70,21 @@ export default function BookingSuccess() {
   const seconds = timeLeft % 60;
 
   const waText = encodeURIComponent(
-    `Halo Fotoinyu, saya ingin mengkonfirmasi pembayaran DP untuk booking photobooth saya.\n\n` +
-    `*Kode Booking:* ${booking.code}\n` +
-    `*Nama:* ${booking.customerName}\n` +
-    `*Paket:* ${booking.packageName}\n` +
-    `*Venue:* ${booking.venue}\n\n` +
-    `*Total DP Ditransfer:* Rp ${booking.dpAmount.toLocaleString('id-ID')}\n\n` +
-    `Berikut saya lampirkan bukti pembayarannya.`
+    `Halo Admin Fotoinyu! 👋\n` +
+    `Saya ingin mengkonfirmasi pembayaran DP untuk pesanan photobooth saya.\n\n` +
+    `📄 *DETAIL PESANAN (INVOICE)*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `🆔 *Kode Booking:* ${booking.code}\n` +
+    `👤 *Nama:* ${booking.customerName}\n` +
+    `📱 *No. WA:* ${booking.waNumber || '-'}\n` +
+    `📦 *Paket Terpilih:* ${booking.packageName}\n` +
+    `📅 *Tgl Acara:* ${booking.date} | ${booking.time}\n` +
+    `📍 *Lokasi (Venue):* ${booking.venue}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `💰 *TOTAL HARGA PAKET:* Rp ${booking.totalPrice.toLocaleString('id-ID')}\n` +
+    `💸 *NOMINAL DP DITRANSFER:* Rp ${booking.dpAmount.toLocaleString('id-ID')}\n` +
+    `💳 *SISA PELUNASAN:* Rp ${(booking.totalPrice - booking.dpAmount).toLocaleString('id-ID')}\n\n` +
+    `Berikut saya lampirkan foto/screenshot bukti transfernya. Terima kasih! 🙏`
   );
 
   const handleCopy = () => {
@@ -277,7 +285,7 @@ export default function BookingSuccess() {
 
           <div className="mt-10 pt-8 border-t border-slate-100 dark:border-slate-800">
             <a
-              href={`https://wa.me/6282251879806?text=${waText}`}
+              href={`https://wa.me/6281253776037?text=${waText}`}
               target="_blank"
               rel="noreferrer"
               className="w-full flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold transition-colors shadow-lg shadow-green-500/30"
