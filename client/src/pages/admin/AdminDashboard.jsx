@@ -138,7 +138,21 @@ export default function AdminDashboard() {
   };
 
   const handlePrint = (code) => {
-    window.open(`/booking/${code}?print=true`, '_blank');
+    showToast('Membuka dialog cetak PDF...');
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    iframe.src = `/booking/${code}?print=true`;
+    document.body.appendChild(iframe);
+    
+    // Clean up iframe after a while
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
+    }, 15000);
   };
 
   const handleChangePassword = async (e) => {
