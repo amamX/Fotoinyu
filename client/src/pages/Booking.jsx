@@ -221,10 +221,10 @@ export default function Booking() {
                   const bookingsOnDate = existingBookings.filter(b => b.date === dStr && b.status !== 'rejected' && b.status !== 'refunded');
                   const count = bookingsOnDate.length;
                   
-                  let bgColor = 'bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700';
-                  if (count === 1) bgColor = 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold border-blue-200 dark:border-blue-800/50';
-                  if (count === 2) bgColor = 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 font-bold border-orange-200 dark:border-orange-800/50';
-                  if (count >= 3) bgColor = 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-bold border-red-200 dark:border-red-800/50';
+                  let bgColor = 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700';
+                  if (count === 1) bgColor = 'bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 font-bold border-blue-200 dark:border-blue-800/50';
+                  if (count === 2) bgColor = 'bg-orange-50 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 font-bold border-orange-200 dark:border-orange-800/50';
+                  if (count >= 3) bgColor = 'bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-300 font-bold border-red-200 dark:border-red-800/50';
                   
                   const isSelected = formData.date === dStr;
                   const isFull = count >= 3;
@@ -241,7 +241,7 @@ export default function Booking() {
                       }}
                       className={`group relative flex flex-col items-center justify-center h-14 md:h-16 rounded-xl border transition-all duration-300 ${isFull ? 'opacity-60 cursor-not-allowed bg-red-100 dark:bg-red-900/40 border-red-300 dark:border-red-800' : isSelected ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-[var(--color-primary)] border-transparent bg-gradient-to-br from-[var(--color-primary)] to-blue-600 text-white shadow-lg shadow-blue-500/30 cursor-pointer transform scale-105 z-10' : bgColor + ' hover:shadow-md hover:-translate-y-0.5 cursor-pointer hover:border-blue-300 dark:hover:border-blue-700'}`}
                     >
-                      <span className={`text-sm md:text-base font-bold ${isSelected ? 'text-white' : isFull ? 'text-red-700 dark:text-red-400' : ''}`}>{i}</span>
+                      <span className={`text-sm md:text-base font-bold ${isSelected ? 'text-white' : isFull ? 'text-red-800 dark:text-red-300' : count === 2 ? 'text-orange-800 dark:text-orange-300' : count === 1 ? 'text-blue-800 dark:text-blue-300' : 'text-slate-800 dark:text-slate-200'}`}>{i}</span>
                       {count > 0 && <span className={`text-[8px] md:text-[10px] leading-tight text-center mt-0.5 block px-1.5 py-0.5 rounded-md ${isSelected ? 'bg-white/20 text-white' : isFull ? 'bg-red-200 dark:bg-red-900/60 text-red-800 dark:text-red-300 font-bold' : count === 2 ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-400' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'}`}>{isFull ? 'Penuh' : `${count} Acara`}</span>}
                       
                       {!isFull && !isSelected && count > 0 && (

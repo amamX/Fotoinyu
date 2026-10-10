@@ -10,7 +10,7 @@ export default function BookingSuccess() {
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(24 * 60 * 60); // 24 hours in seconds
   const [isCopied, setIsCopied] = useState(false);
-  const [booking, setBooking] = useState(null);
+  const [booking, setBooking] = useState(location.state?.booking || null);
 
   useEffect(() => {
     // Poll data from Supabase
@@ -18,8 +18,8 @@ export default function BookingSuccess() {
       const { data, error } = await supabase.from('bookings').select('*').eq('code', code).single();
       if (data) {
         setBooking(data);
-      } else if (location.state?.booking) {
-        setBooking(location.state.booking);
+      } else if (error && error.code === 'PGRST116') { // Not Found
+        setBooking(prev => prev ? { ...prev, status: 'deleted' } : { status: 'deleted', code });
       }
     };
 
@@ -180,8 +180,8 @@ export default function BookingSuccess() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center print:hidden" data-html2canvas-ignore="true">
-              <button onClick={handleDownloadPDF} className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-bold transition-colors">
-                <FileText size={20} /> Cetak Invoice PDF
+              <button onClick={() => window.print()} className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-bold transition-colors">
+                <FileText size={20} /> Cetak Invoice (Print/PDF)
               </button>
               <button onClick={() => navigate('/')} className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors">
                 Kembali ke Beranda
@@ -193,8 +193,31 @@ export default function BookingSuccess() {
     );
   }
 
-  // Rejected State
-  if (booking.status === 'rejected') {
+  // Refunded State
+  if (booking.status === 'refunded') {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-32 pb-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center transition-colors duration-300">
+        <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-orange-500/30 p-8 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-500 to-yellow-400"></div>
+          <div className="w-20 h-20 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-orange-500/20">
+            <CheckCircle size={40} />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Refund Selesai</h1>
+          <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
+            Pesanan Anda (Kode: <strong>{booking.code}</strong>) telah dibatalkan dan proses <strong>pengembalian dana (refund) telah selesai</strong> ditransfer oleh Admin.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button onClick={() => navigate('/')} className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold py-4 rounded-xl transition-colors">
+              Kembali ke Beranda
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Rejected / Deleted State
+  if (booking.status === 'rejected' || booking.status === 'deleted') {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-32 pb-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center transition-colors duration-300">
         <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-red-500/30 p-8 text-center relative overflow-hidden">
