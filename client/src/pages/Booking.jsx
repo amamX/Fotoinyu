@@ -73,8 +73,14 @@ export default function Booking() {
     }
   }, [location.state]);
 
-  const nextStep = () => setStep(s => Math.min(3, s + 1));
-  const prevStep = () => setStep(s => Math.max(1, s - 1));
+  const nextStep = () => {
+    setStep(s => Math.min(3, s + 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const prevStep = () => {
+    setStep(s => Math.max(1, s - 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const submitBooking = async (e) => {
     e.preventDefault();
@@ -186,7 +192,15 @@ export default function Booking() {
                     type="date" 
                     value={formData.date} 
                     min={new Date().toLocaleDateString('en-CA')} // format YYYY-MM-DD local
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })} 
+                    onChange={(e) => {
+                      const selectedD = e.target.value;
+                      const count = existingBookings.filter(b => b.date === selectedD && b.status !== 'rejected' && b.status !== 'refunded').length;
+                      if (count >= 3) {
+                        Swal.fire('Jadwal Penuh', 'Maaf, tanggal ini sudah mencapai batas maksimal 3 acara. Silakan pilih tanggal lain.', 'error');
+                      } else {
+                        setFormData({ ...formData, date: selectedD });
+                      }
+                    }} 
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
                   />
                 </div>
@@ -215,10 +229,10 @@ export default function Booking() {
                   const bookingsOnDate = existingBookings.filter(b => b.date === dStr && b.status !== 'rejected' && b.status !== 'refunded');
                   const count = bookingsOnDate.length;
                   
-                  let bgColor = 'bg-slate-50 dark:bg-slate-800/50 text-slate-400';
-                  if (count > 0) bgColor = 'bg-blue-50 text-blue-700 font-bold border-blue-200';
-                  if (count >= 2) bgColor = 'bg-orange-50 text-orange-700 font-bold border-orange-200';
-                  if (count >= 3) bgColor = 'bg-red-50 text-red-700 font-bold border-red-200';
+                  let bgColor = 'bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+                  if (count === 1) bgColor = 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold border-blue-200 dark:border-blue-800/50';
+                  if (count === 2) bgColor = 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 font-bold border-orange-200 dark:border-orange-800/50';
+                  if (count >= 3) bgColor = 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-bold border-red-200 dark:border-red-800/50';
                   
                   const isSelected = formData.date === dStr;
                   const isFull = count >= 3;
@@ -226,12 +240,24 @@ export default function Booking() {
                   days.push(
                     <div 
                       key={i} 
-                      onClick={() => { if(!isFull) setFormData({ ...formData, date: dStr }); }}
-                      className={`flex flex-col items-center justify-center p-1 md:p-2 rounded-lg border ${isFull ? 'bg-red-100 text-red-700 opacity-60 cursor-not-allowed' : isSelected ? 'ring-2 ring-[var(--color-primary)] border-transparent bg-blue-50 text-blue-700 shadow-sm cursor-pointer' : bgColor + ' hover:border-blue-300 cursor-pointer'} transition-all`}
+                      onClick={() => { 
+                        if(isFull) {
+                          Swal.fire('Jadwal Penuh', 'Tanggal ini sudah mencapai batas maksimal 3 acara. Silakan pilih tanggal lain.', 'error');
+                        } else {
+                          setFormData({ ...formData, date: dStr });
+                        } 
+                      }}
+                      className={`group relative flex flex-col items-center justify-center h-14 md:h-16 rounded-xl border transition-all duration-300 ${isFull ? 'opacity-60 cursor-not-allowed bg-red-100/50 dark:bg-red-900/20 grayscale' : isSelected ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-[var(--color-primary)] border-transparent bg-gradient-to-br from-[var(--color-primary)] to-blue-600 text-white shadow-lg shadow-blue-500/30 cursor-pointer transform scale-105 z-10' : bgColor + ' hover:shadow-md hover:-translate-y-0.5 cursor-pointer hover:border-blue-300 dark:hover:border-blue-700'}`}
                     >
-                      <span className="text-sm">{i}</span>
-                      {count > 0 && <span className="text-[9px] leading-tight text-center mt-1 hidden md:block">{isFull ? 'Penuh' : `${count} Acara`}</span>}
-                      {count > 0 && <span className="w-1.5 h-1.5 rounded-full bg-current md:hidden mt-0.5"></span>}
+                      <span className={`text-sm md:text-base font-bold ${isSelected ? 'text-white' : ''}`}>{i}</span>
+                      {count > 0 && <span className={`text-[9px] md:text-[10px] leading-tight text-center mt-0.5 hidden md:block px-1.5 py-0.5 rounded-md ${isSelected ? 'bg-white/20 text-white' : isFull ? 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-400' : count === 2 ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-400' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'}`}>{isFull ? 'Penuh' : `${count} Acara`}</span>}
+                      {count > 0 && <span className={`w-1.5 h-1.5 rounded-full mt-1 md:hidden ${isSelected ? 'bg-white' : 'bg-current'}`}></span>}
+                      
+                      {!isFull && !isSelected && count > 0 && (
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-lg hidden md:block">
+                          Sisa {3 - count} Slot
+                        </div>
+                      )}
                     </div>
                   );
                 }

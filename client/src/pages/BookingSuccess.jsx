@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle, Clock, FileText, Smartphone, Copy, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import html2pdf from 'html2pdf.js';
 
 export default function BookingSuccess() {
   const { code } = useParams();
@@ -54,12 +55,24 @@ export default function BookingSuccess() {
     if (new URLSearchParams(location.search).get('print') === 'true') {
       setHasPrinted(true);
       setTimeout(() => {
-        window.print();
+        handleDownloadPDF();
         // Hapus ?print=true dari URL agar tidak terulang jika di-refresh/polling
         navigate(location.pathname, { replace: true });
       }, 1000);
     }
   }, [booking, location.search, hasPrinted, navigate]);
+
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('invoice-content');
+    const opt = {
+      margin:       0.5,
+      filename:     `Invoice-${booking.code}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+  };
 
   if (!booking) {
     return <div className="min-h-screen flex items-center justify-center">Loading data pesanan...</div>;
@@ -99,7 +112,7 @@ export default function BookingSuccess() {
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-32 pb-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 print:bg-white print:pt-10">
         <div className="max-w-2xl mx-auto">
           {/* Invoice Container */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-green-500/30 p-8 md:p-12 relative overflow-hidden print:shadow-none print:border-slate-300 print:rounded-none">
+          <div id="invoice-content" className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-green-500/30 p-8 md:p-12 relative overflow-hidden print:shadow-none print:border-slate-300 print:rounded-none">
             
             <div className="text-center">
               <div className="w-24 h-24 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/20 print:hidden">
@@ -166,8 +179,8 @@ export default function BookingSuccess() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center print:hidden">
-              <button onClick={() => window.print()} className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-bold transition-colors">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center print:hidden" data-html2canvas-ignore="true">
+              <button onClick={handleDownloadPDF} className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-bold transition-colors">
                 <FileText size={20} /> Cetak Invoice PDF
               </button>
               <button onClick={() => navigate('/')} className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors">
