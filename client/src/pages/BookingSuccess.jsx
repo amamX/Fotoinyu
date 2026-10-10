@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle, Clock, FileText, Smartphone, Copy, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import html2pdf from 'html2pdf.js';
 
 export default function BookingSuccess() {
   const { code } = useParams();
@@ -55,24 +54,12 @@ export default function BookingSuccess() {
     if (new URLSearchParams(location.search).get('print') === 'true') {
       setHasPrinted(true);
       setTimeout(() => {
-        handleDownloadPDF();
+        window.print();
         // Hapus ?print=true dari URL agar tidak terulang jika di-refresh/polling
         navigate(location.pathname, { replace: true });
       }, 1000);
     }
   }, [booking, location.search, hasPrinted, navigate]);
-
-  const handleDownloadPDF = () => {
-    const element = document.getElementById('invoice-content');
-    const opt = {
-      margin:       0.5,
-      filename:     `Invoice-${booking.code}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
-  };
 
   if (!booking) {
     return <div className="min-h-screen flex items-center justify-center">Loading data pesanan...</div>;
