@@ -5,6 +5,7 @@ import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../utils/cropImage';
 import { supabase } from '../../lib/supabase';
 import Swal from 'sweetalert2';
+import html2pdf from 'html2pdf.js';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -138,8 +139,80 @@ export default function AdminDashboard() {
   };
 
   const handlePrint = (code) => {
-    showToast('Membuka tab baru untuk cetak Invoice...');
-    window.open(`/booking/${code}?print=true`, '_blank');
+    const booking = bookings.find(b => b.code === code);
+    if (!booking) return;
+
+    showToast('Sedang membuat PDF...');
+
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div style="padding: 40px; font-family: sans-serif; background: white; color: black; width: 800px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">
+            ${booking.status === 'completed' ? 'INVOICE LUNAS (FULL)' : 'INVOICE LUNAS (DP)'}
+          </h1>
+          <p style="color: #64748b;">Terima kasih atas pesanan Anda.</p>
+        </div>
+        
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px;">
+            <div>
+              <div style="font-size: 12px; color: #64748b;">Kode Booking</div>
+              <div style="font-size: 16px; font-weight: bold;">${booking.code}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 12px; color: #64748b;">Tanggal Transaksi</div>
+              <div style="font-weight: 500;">${new Date(booking.createdAt || Date.now()).toLocaleDateString('id-ID')}</div>
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span style="color: #64748b;">Nama Pemesan</span>
+            <span style="font-weight: 500;">${booking.customerName}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span style="color: #64748b;">Paket Terpilih</span>
+            <span style="font-weight: 500;">${booking.packageName}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span style="color: #64748b;">Tanggal & Jam Acara</span>
+            <span style="font-weight: 500;">${booking.date} | ${booking.time}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #64748b;">Total Harga Paket</span>
+            <span style="font-weight: 500;">Rp ${booking.totalPrice.toLocaleString('id-ID')}</span>
+          </div>
+        </div>
+        
+        <div style="background: ${booking.status === 'completed' ? '#eff6ff' : '#f0fdf4'}; padding: 20px; border-radius: 12px; border: 1px solid ${booking.status === 'completed' ? '#bfdbfe' : '#bbf7d0'};">
+          ${booking.status === 'completed' ? `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #1d4ed8; font-weight: bold;">LUNAS KESELURUHAN</span>
+              <span style="font-size: 20px; font-weight: bold; color: #1d4ed8;">Rp ${booking.totalPrice.toLocaleString('id-ID')}</span>
+            </div>
+          ` : `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <span style="color: #15803d; font-weight: bold;">UANG MUKA (DP) DIBAYARKAN</span>
+              <span style="font-size: 20px; font-weight: bold; color: #15803d;">Rp ${booking.dpAmount.toLocaleString('id-ID')}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #bbf7d0; padding-top: 15px;">
+              <span style="color: #334155; font-weight: bold;">SISA PEMBAYARAN (PELUNASAN)</span>
+              <span style="font-size: 18px; font-weight: bold; color: #1e293b;">Rp ${(booking.totalPrice - booking.dpAmount).toLocaleString('id-ID')}</span>
+            </div>
+          `}
+        </div>
+      </div>
+    `;
+    
+    const opt = {
+      margin:       0.5,
+      filename:     `Invoice-${booking.code}.pdf`,
+      image:        { type: 'jpeg', quality: 1 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    
+    html2pdf().set(opt).from(div).save();
   };
 
   const handleChangePassword = async (e) => {

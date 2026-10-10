@@ -36,14 +36,29 @@ export default function BookingSuccess() {
     };
   }, [code, location.state]);
 
-  // Prevent accidental refresh
+  // Prevent accidental refresh and handle print dark mode
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       e.preventDefault();
       e.returnValue = ''; // Standard browser refresh warning
     };
+    
+    const beforePrint = () => document.documentElement.classList.remove('dark');
+    const afterPrint = () => {
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    };
+    
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('beforeprint', beforePrint);
+    window.addEventListener('afterprint', afterPrint);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('beforeprint', beforePrint);
+      window.removeEventListener('afterprint', afterPrint);
+    };
   }, []);
 
   const [hasPrinted, setHasPrinted] = useState(false);
