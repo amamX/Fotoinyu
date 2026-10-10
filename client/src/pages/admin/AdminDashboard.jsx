@@ -5,7 +5,6 @@ import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../utils/cropImage';
 import { supabase } from '../../lib/supabase';
 import Swal from 'sweetalert2';
-import html2pdf from 'html2pdf.js';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -14,6 +13,7 @@ export default function AdminDashboard() {
   const [bookings, setBookings] = useState([]);
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [pdfModalHtml, setPdfModalHtml] = useState(null);
   
   // Custom Toast State
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -142,88 +142,104 @@ export default function AdminDashboard() {
     const booking = bookings.find(b => b.code === code);
     if (!booking) return;
 
-    showToast('Sedang membuat PDF...');
+    showToast('Menyiapkan Invoice PDF...');
 
-    const div = document.createElement('div');
-    div.style.position = 'absolute';
-    div.style.left = '-9999px';
-    div.style.top = '-9999px';
-    div.innerHTML = `
-      <div style="padding: 40px; font-family: sans-serif; background: white; color: black; width: 800px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">
-            ${booking.status === 'completed' ? 'INVOICE LUNAS (FULL)' : 'INVOICE LUNAS (DP)'}
-          </h1>
-          <p style="color: #64748b;">Terima kasih atas pesanan Anda.</p>
-        </div>
-        
-        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
-          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px;">
-            <div>
-              <div style="font-size: 12px; color: #64748b;">Kode Booking</div>
-              <div style="font-size: 16px; font-weight: bold;">${booking.code}</div>
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice - ${booking.code}</title>
+        <style>
+          body { font-family: 'Inter', sans-serif; padding: 40px; margin: 0; color: #1e293b; background: white; }
+          .container { max-width: 800px; margin: 0 auto; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+          .subtitle { color: #64748b; }
+          .details { background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 30px; }
+          .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+          .border-b { border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px; }
+          .label { color: #64748b; font-size: 12px; }
+          .value { font-weight: 500; }
+          .payment { padding: 20px; border-radius: 12px; border: 1px solid; }
+          .payment-full { background: #eff6ff; border-color: #bfdbfe; }
+          .payment-dp { background: #f0fdf4; border-color: #bbf7d0; }
+          .text-blue { color: #1d4ed8; }
+          .text-green { color: #15803d; }
+          .text-dark { color: #1e293b; }
+          .font-bold { font-weight: bold; }
+          @media print {
+            body { padding: 0; }
+            .container { max-width: 100%; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="title">${booking.status === 'completed' ? 'INVOICE LUNAS (FULL)' : 'INVOICE LUNAS (DP)'}</div>
+            <div class="subtitle">Terima kasih atas pesanan Anda.</div>
+          </div>
+          
+          <div class="details">
+            <div class="row border-b">
+              <div>
+                <div class="label">Kode Booking</div>
+                <div class="value" style="font-size: 16px;">${booking.code}</div>
+              </div>
+              <div style="text-align: right;">
+                <div class="label">Tanggal Transaksi</div>
+                <div class="value">${new Date(booking.createdAt || Date.now()).toLocaleDateString('id-ID')}</div>
+              </div>
             </div>
-            <div style="text-align: right;">
-              <div style="font-size: 12px; color: #64748b;">Tanggal Transaksi</div>
-              <div style="font-weight: 500;">${new Date(booking.createdAt || Date.now()).toLocaleDateString('id-ID')}</div>
+            
+            <div class="row">
+              <span class="label" style="font-size: 14px;">Nama Pemesan</span>
+              <span class="value">${booking.customerName}</span>
+            </div>
+            <div class="row">
+              <span class="label" style="font-size: 14px;">Paket Terpilih</span>
+              <span class="value">${booking.packageName}</span>
+            </div>
+            <div class="row">
+              <span class="label" style="font-size: 14px;">Tanggal & Jam Acara</span>
+              <span class="value">${booking.date} | ${booking.time}</span>
+            </div>
+            <div class="row">
+              <span class="label" style="font-size: 14px;">Total Harga Paket</span>
+              <span class="value">Rp ${booking.totalPrice.toLocaleString('id-ID')}</span>
             </div>
           </div>
           
-          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <span style="color: #64748b;">Nama Pemesan</span>
-            <span style="font-weight: 500;">${booking.customerName}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <span style="color: #64748b;">Paket Terpilih</span>
-            <span style="font-weight: 500;">${booking.packageName}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <span style="color: #64748b;">Tanggal & Jam Acara</span>
-            <span style="font-weight: 500;">${booking.date} | ${booking.time}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: #64748b;">Total Harga Paket</span>
-            <span style="font-weight: 500;">Rp ${booking.totalPrice.toLocaleString('id-ID')}</span>
+          <div class="payment ${booking.status === 'completed' ? 'payment-full' : 'payment-dp'}">
+            ${booking.status === 'completed' ? `
+              <div class="row" style="align-items: center; margin-bottom: 0;">
+                <span class="font-bold text-blue">LUNAS KESELURUHAN</span>
+                <span class="font-bold text-blue" style="font-size: 20px;">Rp ${booking.totalPrice.toLocaleString('id-ID')}</span>
+              </div>
+            ` : `
+              <div class="row" style="align-items: center; margin-bottom: 15px;">
+                <span class="font-bold text-green">UANG MUKA (DP) DIBAYARKAN</span>
+                <span class="font-bold text-green" style="font-size: 20px;">Rp ${booking.dpAmount.toLocaleString('id-ID')}</span>
+              </div>
+              <div class="row" style="align-items: center; border-top: 1px solid #bbf7d0; padding-top: 15px; margin-bottom: 0;">
+                <span class="font-bold text-dark">SISA PEMBAYARAN (PELUNASAN)</span>
+                <span class="font-bold text-dark" style="font-size: 18px;">Rp ${(booking.totalPrice - booking.dpAmount).toLocaleString('id-ID')}</span>
+              </div>
+            `}
           </div>
         </div>
-        
-        <div style="background: ${booking.status === 'completed' ? '#eff6ff' : '#f0fdf4'}; padding: 20px; border-radius: 12px; border: 1px solid ${booking.status === 'completed' ? '#bfdbfe' : '#bbf7d0'};">
-          ${booking.status === 'completed' ? `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: #1d4ed8; font-weight: bold;">LUNAS KESELURUHAN</span>
-              <span style="font-size: 20px; font-weight: bold; color: #1d4ed8;">Rp ${booking.totalPrice.toLocaleString('id-ID')}</span>
-            </div>
-          ` : `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-              <span style="color: #15803d; font-weight: bold;">UANG MUKA (DP) DIBAYARKAN</span>
-              <span style="font-size: 20px; font-weight: bold; color: #15803d;">Rp ${booking.dpAmount.toLocaleString('id-ID')}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #bbf7d0; padding-top: 15px;">
-              <span style="color: #334155; font-weight: bold;">SISA PEMBAYARAN (PELUNASAN)</span>
-              <span style="font-size: 18px; font-weight: bold; color: #1e293b;">Rp ${(booking.totalPrice - booking.dpAmount).toLocaleString('id-ID')}</span>
-            </div>
-          `}
-        </div>
-      </div>
+        <script>
+          function printInvoice() {
+            window.print();
+          }
+        </script>
+      </body>
+      </html>
     `;
-    
-    const opt = {
-      margin:       0.5,
-      filename:     `Invoice-${booking.code}.pdf`,
-      image:        { type: 'jpeg', quality: 1 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-    
-    document.body.appendChild(div);
-    
-    html2pdf().set(opt).from(div).save().then(() => {
-      document.body.removeChild(div);
-    }).catch(err => {
-      console.error(err);
-      if (document.body.contains(div)) document.body.removeChild(div);
-      showToast('Gagal membuat PDF', 'error');
-    });
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    setPdfModalHtml(url);
   };
 
   const handleChangePassword = async (e) => {
@@ -925,6 +941,40 @@ export default function AdminDashboard() {
                 <button onClick={handleCropSave} className="px-4 py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700">Simpan Potongan</button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* PDF Modal */}
+      {pdfModalHtml && (
+        <div className="fixed inset-0 bg-slate-900/80 z-[100] flex flex-col items-center justify-center p-4 backdrop-blur-sm">
+          <div className="w-full max-w-3xl h-[85vh] bg-white rounded-2xl flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex justify-between items-center p-4 border-b bg-slate-50">
+              <h3 className="font-bold text-lg text-slate-800">Pratinjau Invoice</h3>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => {
+                    const iframe = document.getElementById('invoice-iframe');
+                    if (iframe && iframe.contentWindow) {
+                      iframe.contentWindow.printInvoice();
+                    }
+                  }} 
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors"
+                >
+                  <Printer size={16} /> Cetak / Save PDF
+                </button>
+                <button 
+                  onClick={() => {
+                    setPdfModalHtml(null);
+                    URL.revokeObjectURL(pdfModalHtml);
+                  }} 
+                  className="bg-slate-200 text-slate-800 px-4 py-2 rounded-lg font-medium text-sm hover:bg-slate-300 transition-colors"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+            <iframe id="invoice-iframe" src={pdfModalHtml} className="w-full flex-1 border-none bg-gray-100" title="Invoice Preview"></iframe>
           </div>
         </div>
       )}
