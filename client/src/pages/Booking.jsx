@@ -192,15 +192,7 @@ export default function Booking() {
                     type="date" 
                     value={formData.date} 
                     min={new Date().toLocaleDateString('en-CA')} // format YYYY-MM-DD local
-                    onChange={(e) => {
-                      const selectedD = e.target.value;
-                      const count = existingBookings.filter(b => b.date === selectedD && b.status !== 'rejected' && b.status !== 'refunded').length;
-                      if (count >= 3) {
-                        Swal.fire('Jadwal Penuh', 'Maaf, tanggal ini sudah mencapai batas maksimal 3 acara. Silakan pilih tanggal lain.', 'error');
-                      } else {
-                        setFormData({ ...formData, date: selectedD });
-                      }
-                    }} 
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })} 
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
                   />
                 </div>
@@ -247,11 +239,10 @@ export default function Booking() {
                           setFormData({ ...formData, date: dStr });
                         } 
                       }}
-                      className={`group relative flex flex-col items-center justify-center h-14 md:h-16 rounded-xl border transition-all duration-300 ${isFull ? 'opacity-60 cursor-not-allowed bg-red-100/50 dark:bg-red-900/20 grayscale' : isSelected ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-[var(--color-primary)] border-transparent bg-gradient-to-br from-[var(--color-primary)] to-blue-600 text-white shadow-lg shadow-blue-500/30 cursor-pointer transform scale-105 z-10' : bgColor + ' hover:shadow-md hover:-translate-y-0.5 cursor-pointer hover:border-blue-300 dark:hover:border-blue-700'}`}
+                      className={`group relative flex flex-col items-center justify-center h-14 md:h-16 rounded-xl border transition-all duration-300 ${isFull ? 'opacity-60 cursor-not-allowed bg-red-100 dark:bg-red-900/40 border-red-300 dark:border-red-800' : isSelected ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-[var(--color-primary)] border-transparent bg-gradient-to-br from-[var(--color-primary)] to-blue-600 text-white shadow-lg shadow-blue-500/30 cursor-pointer transform scale-105 z-10' : bgColor + ' hover:shadow-md hover:-translate-y-0.5 cursor-pointer hover:border-blue-300 dark:hover:border-blue-700'}`}
                     >
-                      <span className={`text-sm md:text-base font-bold ${isSelected ? 'text-white' : ''}`}>{i}</span>
-                      {count > 0 && <span className={`text-[9px] md:text-[10px] leading-tight text-center mt-0.5 hidden md:block px-1.5 py-0.5 rounded-md ${isSelected ? 'bg-white/20 text-white' : isFull ? 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-400' : count === 2 ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-400' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'}`}>{isFull ? 'Penuh' : `${count} Acara`}</span>}
-                      {count > 0 && <span className={`w-1.5 h-1.5 rounded-full mt-1 md:hidden ${isSelected ? 'bg-white' : 'bg-current'}`}></span>}
+                      <span className={`text-sm md:text-base font-bold ${isSelected ? 'text-white' : isFull ? 'text-red-700 dark:text-red-400' : ''}`}>{i}</span>
+                      {count > 0 && <span className={`text-[8px] md:text-[10px] leading-tight text-center mt-0.5 block px-1.5 py-0.5 rounded-md ${isSelected ? 'bg-white/20 text-white' : isFull ? 'bg-red-200 dark:bg-red-900/60 text-red-800 dark:text-red-300 font-bold' : count === 2 ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-400' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'}`}>{isFull ? 'Penuh' : `${count} Acara`}</span>}
                       
                       {!isFull && !isSelected && count > 0 && (
                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-lg hidden md:block">
