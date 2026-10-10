@@ -145,6 +145,9 @@ export default function AdminDashboard() {
     showToast('Sedang membuat PDF...');
 
     const div = document.createElement('div');
+    div.style.position = 'absolute';
+    div.style.left = '-9999px';
+    div.style.top = '-9999px';
     div.innerHTML = `
       <div style="padding: 40px; font-family: sans-serif; background: white; color: black; width: 800px;">
         <div style="text-align: center; margin-bottom: 30px;">
@@ -212,7 +215,15 @@ export default function AdminDashboard() {
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
     
-    html2pdf().set(opt).from(div).save();
+    document.body.appendChild(div);
+    
+    html2pdf().set(opt).from(div).save().then(() => {
+      document.body.removeChild(div);
+    }).catch(err => {
+      console.error(err);
+      if (document.body.contains(div)) document.body.removeChild(div);
+      showToast('Gagal membuat PDF', 'error');
+    });
   };
 
   const handleChangePassword = async (e) => {

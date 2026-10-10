@@ -73,13 +73,21 @@ export default function Booking() {
     }
   }, [location.state]);
 
+  const scrollToTop = () => {
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {
+      window.scrollTo(0, 0);
+    }
+  };
+
   const nextStep = () => {
     setStep(s => Math.min(3, s + 1));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
   const prevStep = () => {
     setStep(s => Math.max(1, s - 1));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const submitBooking = async (e) => {
