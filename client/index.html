@@ -4,8 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Favicon Fotoinyu -->
-    <link rel="icon" type="image/png" href="/images/logo.png" />
+    <!-- Favicon & Icon Multi-Ukuran untuk Google & Browser -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Verifikasi Google Search Console -->
     <meta
@@ -18,28 +23,68 @@
 
     <meta
       name="description"
-      content="Fotoinyu Photobooth menyediakan jasa photobooth untuk wedding, ulang tahun, wisuda, dan acara perusahaan di Banjarmasin dan sekitarnya. Lihat paket layanan dan lakukan booking online."
+      content="Fotoinyu Photobooth menyediakan jasa sewa photobooth terbaik di Banjarmasin untuk wedding, ulang tahun, wisuda, dan event. Reservasi tanggal dan cetak foto instan."
     />
-
+    <meta
+      name="keywords"
+      content="fotoinyu, foto in yu, fotoyu, photobooth banjarmasin, jasa photobooth, fotoinyu photobooth, sewa photobooth banjarmasin, vendor photobooth wedding banjarmasin"
+    />
     <meta name="robots" content="index, follow" />
-
     <link rel="canonical" href="https://fotoinyu.vercel.app/" />
 
-    <!-- Open Graph untuk berbagi tautan -->
-    <meta
-      property="og:title"
-      content="Fotoinyu Photobooth | Jasa Photobooth Banjarmasin"
-    />
-
+    <!-- Open Graph untuk Media Sosial & Pratinjau Tautan -->
+    <meta property="og:site_name" content="Fotoinyu Photobooth" />
+    <meta property="og:title" content="Fotoinyu Photobooth | Jasa Photobooth Banjarmasin" />
     <meta
       property="og:description"
-      content="Abadikan momen spesial bersama Fotoinyu Photobooth. Lihat paket layanan untuk wedding, ulang tahun, wisuda, dan berbagai acara."
+      content="Abadikan momen spesial bersama Fotoinyu Photobooth di Banjarmasin. Cetak foto instan berkualitas untuk wedding, wisuda, dan event spesial."
     />
-
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://fotoinyu.vercel.app/" />
-    <meta property="og:site_name" content="Fotoinyu Photobooth" />
+    <meta property="og:image" content="https://fotoinyu.vercel.app/images/logo.png" />
     <meta property="og:locale" content="id_ID" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Fotoinyu Photobooth | Jasa Photobooth Banjarmasin" />
+    <meta name="twitter:description" content="Jasa sewa photobooth instan di Banjarmasin untuk berbagai acara." />
+    <meta name="twitter:image" content="https://fotoinyu.vercel.app/images/logo.png" />
+
+    <!-- Schema.org JSON-LD untuk Nama Situs & Logo di Google Search -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://fotoinyu.vercel.app/#website",
+            "url": "https://fotoinyu.vercel.app/",
+            "name": "Fotoinyu Photobooth",
+            "alternateName": ["Fotoinyu", "Foto In Yu", "Fotoinyu Banjarmasin"],
+            "publisher": {
+              "@id": "https://fotoinyu.vercel.app/#organization"
+            }
+          },
+          {
+            "@type": "LocalBusiness",
+            "@id": "https://fotoinyu.vercel.app/#organization",
+            "name": "Fotoinyu Photobooth",
+            "alternateName": "Fotoinyu",
+            "url": "https://fotoinyu.vercel.app/",
+            "logo": "https://fotoinyu.vercel.app/favicon-512x512.png",
+            "image": "https://fotoinyu.vercel.app/images/logo.png",
+            "description": "Jasa photobooth instan terbaik di Banjarmasin untuk wedding, ulang tahun, wisuda, dan event perusahaan.",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Banjarmasin",
+              "addressRegion": "Kalimantan Selatan",
+              "addressCountry": "ID"
+            },
+            "priceRange": "$$"
+          }
+        ]
+      }
+    </script>
   </head>
 
   <body>
